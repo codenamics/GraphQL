@@ -1,21 +1,44 @@
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
 const schema = require('./schema')
-const cors = require('cors')
-const path = require('path')
 const app = express();
-
-app.use(cors())
+const axios = require('axios')
+const {
+    createApolloFetch
+} = require('apollo-fetch');
 
 app.use('/graphql', graphqlHTTP({
     schema,
     graphiql: true
 }));
+const fetch = createApolloFetch({
+    uri: 'http://localhost:5000/graphql',
+});
 
-app.use(express.static('public'))
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public', 'index.html'))
-})
+
+(() => {
+
+
+    fetch({
+        query: `query PostsForAuthor($flight_number: Int!) {
+            launch(flight_number: $flight_number){
+                mission_name,
+                launch_year,
+                launch_success,
+                
+              }
+          }`,
+        variables: {
+            flight_number: 10
+        }
+    }).then(res => {
+        console.log(res.data.launch.mission_name);
+    });
+
+
+
+
+})()
 
 const PORT = process.env.PORT || 5000
 
